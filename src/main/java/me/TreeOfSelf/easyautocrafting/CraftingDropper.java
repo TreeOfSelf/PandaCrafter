@@ -116,7 +116,7 @@ public class CraftingDropper
                 }
 
                 world.syncWorldEvent(1000, dropperPos, 0);
-                world.syncWorldEvent(2000, dropperPos, facing.getId());
+                world.syncWorldEvent(2000, dropperPos, facing.getIndex());
 
                 hasCrafted = true;
             }

@@ -4,10 +4,8 @@ import net.minecraft.block.entity.DispenserBlockEntity;
 import net.minecraft.block.entity.DropperBlockEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import me.TreeOfSelf.easyautocrafting.CraftingDropper;
 import me.TreeOfSelf.easyautocrafting.DropperCache;
 
 import java.util.List;
