@@ -80,7 +80,7 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 		BlockEntity blockEntity = world.getBlockEntity(pos);
 		if (blockEntity instanceof PandaCrafterBlockEntity pandaCrafterBlockEntity && player instanceof ServerPlayerEntity serverPlayer) {
 			SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_3X3, serverPlayer, false);
-			gui.setTitle(Text.literal("PandaCrafter"));
+			gui.setTitle(Text.literal("Easy Crafter"));
 
 			for (int i = 0; i < 3; i++) {
 				for (int j = 0; j < 3; j++) {
