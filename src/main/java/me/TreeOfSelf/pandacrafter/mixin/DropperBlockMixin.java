@@ -1,19 +1,18 @@
-package me.TreeOfSelf.easyautocrafting.mixin;
+package me.TreeOfSelf.pandacrafter.mixin;
 
 import net.minecraft.block.*;
 import net.minecraft.block.entity.DropperBlockEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import net.minecraft.world.block.WireOrientation;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import me.TreeOfSelf.easyautocrafting.CraftingDropper;
+import me.TreeOfSelf.pandacrafter.CraftingDropper;
 
 @Mixin(value = DropperBlock.class, priority = 1500)
 public class DropperBlockMixin extends DispenserBlock {
@@ -24,7 +23,7 @@ public class DropperBlockMixin extends DispenserBlock {
     }
 
     @Override
-    protected int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+    protected int getComparatorOutput(BlockState state, World world, BlockPos pos, Direction direction) {
         if (world instanceof ServerWorld serverWorld
                 && CraftingDropper.hasTableNextToBlock(serverWorld, pos)
                 && world.getBlockEntity(pos) instanceof DropperBlockEntity dropper) {
@@ -36,7 +35,7 @@ public class DropperBlockMixin extends DispenserBlock {
             }
             return stackCount;
         }
-        return super.getComparatorOutput(state, world, pos);
+        return super.getComparatorOutput(state, world, pos, direction);
     }
 
     @Override

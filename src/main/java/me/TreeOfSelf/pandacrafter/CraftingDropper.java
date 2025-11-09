@@ -1,6 +1,6 @@
-package me.TreeOfSelf.easyautocrafting;
+package me.TreeOfSelf.pandacrafter;
 
-import me.TreeOfSelf.easyautocrafting.mixin.CraftingInventoryMixin;
+import me.TreeOfSelf.pandacrafter.mixin.CraftingInventoryMixin;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;

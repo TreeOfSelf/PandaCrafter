@@ -1,4 +1,4 @@
-package me.TreeOfSelf.easyautocrafting;
+package me.TreeOfSelf.pandacrafter;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;

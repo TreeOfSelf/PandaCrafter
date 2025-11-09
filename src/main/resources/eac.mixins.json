@@ -1,12 +1,10 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "me.TreeOfSelf.easyautocrafting.mixin",
+  "package": "me.TreeOfSelf.pandacrafter.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "CraftingInventoryMixin",
-    "DropperBlockEntityMixin",
-    "DropperBlockMixin"
+    "CraftingInventoryMixin"
   ],
   "client": [
   ],

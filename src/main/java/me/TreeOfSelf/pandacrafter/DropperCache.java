@@ -1,4 +1,4 @@
-package me.TreeOfSelf.easyautocrafting;
+package me.TreeOfSelf.pandacrafter;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;

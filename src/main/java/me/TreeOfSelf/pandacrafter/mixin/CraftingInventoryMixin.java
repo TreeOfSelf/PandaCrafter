@@ -1,4 +1,4 @@
-package me.TreeOfSelf.easyautocrafting.mixin;
+package me.TreeOfSelf.pandacrafter.mixin;
 
 import net.minecraft.inventory.CraftingInventory;
 import net.minecraft.item.ItemStack;

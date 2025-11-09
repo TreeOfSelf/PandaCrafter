@@ -1,4 +1,4 @@
-package me.TreeOfSelf.easyautocrafting;
+package me.TreeOfSelf.pandacrafter;
 
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -11,7 +11,7 @@ import java.util.Properties;
 public class Config
 {
     private static final File CONFIG_FILE = new File(FabricLoader.getInstance().getConfigDir().toFile(), "eac.properties");
-    private static final String CONFIG_COMMENT = "EasyAutoCrafting config file";
+    private static final String CONFIG_COMMENT = "PandaCrafter config file";
 
     private static final String CONFIG_VERSION = "configVersion";
     private static final String configVersion = "1";

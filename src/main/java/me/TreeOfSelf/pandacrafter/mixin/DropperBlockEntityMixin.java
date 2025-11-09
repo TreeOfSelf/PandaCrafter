@@ -1,4 +1,4 @@
-package me.TreeOfSelf.easyautocrafting.mixin;
+package me.TreeOfSelf.pandacrafter.mixin;
 
 import net.minecraft.block.entity.DispenserBlockEntity;
 import net.minecraft.block.entity.DropperBlockEntity;
@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.CraftingRecipe;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import me.TreeOfSelf.easyautocrafting.DropperCache;
+import me.TreeOfSelf.pandacrafter.DropperCache;
 
 import java.util.List;
 

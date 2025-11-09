@@ -1,4 +1,4 @@
-package me.TreeOfSelf.easyautocrafting;
+package me.TreeOfSelf.pandacrafter;
 
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;

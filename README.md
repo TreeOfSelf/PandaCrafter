@@ -1,4 +1,4 @@
-# EasyAutoCrafting
+# PandaCrafter
 
 **Requires [Fabric API](https://github.com/FabricMC/fabric/releases).** This mod improves automation in Minecraft by allowing you to construct automatic crafting machines utilizing vanilla blocks.
 If you want to use this on a server, the clients **don't** have to install the mod.

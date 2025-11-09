@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "easyautocrafting",
+  "id": "pandacrafter",
   "version": "${version}",
 
-  "name": "EasyAutoCrafting",
+  "name": "PandaCrafter",
   "description": "Vanilla client compatible automatic crafting.",
   "authors": [
     "Domi",
@@ -16,12 +16,12 @@
   },
 
   "license": "MIT",
-  "icon": "assets/eac/icon.png",
+  "icon": "assets/panda-crafter/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "me.TreeOfSelf.easyautocrafting.EasyAutoCrafting"
+      "me.TreeOfSelf.pandacrafter.PandaCrafter"
     ]
   },
   "mixins": [
