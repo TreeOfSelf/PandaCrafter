@@ -22,7 +22,7 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	modImplementation include("eu.pb4:polymer-core:0.14.3+1.21.10")
+	modImplementation include("eu.pb4:polymer-core:0.14.2+1.21.9")
 	modImplementation include("eu.pb4:sgui:1.11.0+1.21.9")
 
 	// Fabric API. This is technically optional, but you probably want it anyway.

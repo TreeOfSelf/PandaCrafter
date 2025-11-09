@@ -58,7 +58,7 @@ public class PandaCrafter implements ModInitializer
 		);
 
 		Item.Settings itemSettings = new Item.Settings()
-			.useBlockPrefixedTranslationKey()
+			.useItemPrefixedTranslationKey()
 			.registryKey(itemKey);
 
 		Registry.register(
