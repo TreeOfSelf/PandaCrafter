@@ -23,7 +23,9 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
@@ -40,15 +42,18 @@ import java.util.List;
 
 public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntityProvider {
 	public static final EnumProperty<Direction> FACING = FacingBlock.FACING;
+	public static final BooleanProperty TRIGGERED = Properties.TRIGGERED;
 
 	public PandaCrafterBlock(Settings settings) {
 		super(settings);
-		this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH));
+		this.setDefaultState(this.stateManager.getDefaultState()
+				.with(FACING, Direction.NORTH)
+				.with(TRIGGERED, false));
 	}
 
 	@Override
 	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-		builder.add(FACING);
+		builder.add(FACING, TRIGGERED);
 	}
 
 	@Override
@@ -112,8 +117,16 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 	@Override
 	public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
 		super.neighborUpdate(state, world, pos, sourceBlock, wireOrientation, notify);
-		if (world instanceof ServerWorld serverWorld && world.isReceivingRedstonePower(pos)) {
-			craftRecipe(serverWorld, state, pos);
+		if (world instanceof ServerWorld serverWorld) {
+			boolean isPowered = world.isReceivingRedstonePower(pos);
+			boolean wasTriggered = state.get(TRIGGERED);
+
+			if (isPowered && !wasTriggered) {
+				world.setBlockState(pos, state.with(TRIGGERED, true), Block.NOTIFY_LISTENERS);
+				craftRecipe(serverWorld, state, pos);
+			} else if (!isPowered && wasTriggered) {
+				world.setBlockState(pos, state.with(TRIGGERED, false), Block.NOTIFY_LISTENERS);
+			}
 		}
 	}
 
@@ -135,8 +148,8 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 
 		Direction facing = state.get(FACING);
 		Storage<ItemVariant> ingredientStorage = Config.enable3x3InventorySearching ?
-			InventoryUtil.getMerged3x3Storage(world, pos.offset(facing.getOpposite()), facing) :
-			ItemStorage.SIDED.find(world, pos.offset(facing.getOpposite()), facing);
+				InventoryUtil.getMerged3x3Storage(world, pos.offset(facing.getOpposite()), facing) :
+				ItemStorage.SIDED.find(world, pos.offset(facing.getOpposite()), facing);
 
 		boolean patternMode = ingredientStorage != null;
 
@@ -144,12 +157,12 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 			return;
 		}
 
-        CraftingRecipe recipe = ((DropperCache) pandaCrafter).eac_getRecipe();
+		CraftingRecipe recipe = ((DropperCache) pandaCrafter).eac_getRecipe();
 
 		List<ItemStack> craftingInventoryItems = ((CraftingInventoryMixin) craftingInventory).getStacks();
 
 		if (!InventoryUtil.itemStackListsEqual(((DropperCache) pandaCrafter).eac_getIngredients(), craftingInventoryItems)
-			|| recipe != null && !recipe.matches(craftingInventory.createRecipeInput(), world)) {
+				|| recipe != null && !recipe.matches(craftingInventory.createRecipeInput(), world)) {
 			RecipeEntry<CraftingRecipe> entry = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory.createRecipeInput(), world).orElse(null);
 
 			recipe = entry == null ? null : entry.value();
@@ -211,5 +224,4 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 
 		stackList.add(newStack.copy());
 	}
-
 }
