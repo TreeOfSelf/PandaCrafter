@@ -106,16 +106,6 @@ public class PandaCrafterBlockEntity extends BlockEntity implements Inventory, D
 		Inventories.readData(view, this.inventory);
 	}
 
-	public int chooseNonEmptySlot(java.util.Random random) {
-		int[] slots = new int[INVENTORY_SIZE];
-		int count = 0;
-		for (int i = 0; i < INVENTORY_SIZE; ++i) {
-			if (!this.inventory.get(i).isEmpty()) {
-				slots[count++] = i;
-			}
-		}
-		return count <= 0 ? -1 : slots[random.nextInt(count)];
-	}
 
 	@Override
 	public CraftingRecipe eac_getRecipe() {
@@ -141,8 +131,5 @@ public class PandaCrafterBlockEntity extends BlockEntity implements Inventory, D
 	public void eac_clearCache() {
 		this.cachedRecipe = null;
 		this.cachedIngredients = null;
-	}
-
-	public static void tick(World world, BlockPos pos, BlockState state, PandaCrafterBlockEntity blockEntity) {
 	}
 }

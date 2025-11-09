@@ -24,11 +24,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPointer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -119,7 +117,6 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 		}
 	}
 
-	@SuppressWarnings("UnstableApiUsage")
 	private void craftRecipe(ServerWorld world, BlockState state, BlockPos pos) {
 		BlockEntity blockEntity = world.getBlockEntity(pos);
 		if (!(blockEntity instanceof PandaCrafterBlockEntity pandaCrafter)) {
@@ -147,20 +144,18 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 			return;
 		}
 
-		DropperCache cache = pandaCrafter;
-		CraftingRecipe recipe = cache.eac_getRecipe();
+        CraftingRecipe recipe = ((DropperCache) pandaCrafter).eac_getRecipe();
 
-		//noinspection ConstantConditions
 		List<ItemStack> craftingInventoryItems = ((CraftingInventoryMixin) craftingInventory).getStacks();
 
-		if (!InventoryUtil.itemStackListsEqual(cache.eac_getIngredients(), craftingInventoryItems)
+		if (!InventoryUtil.itemStackListsEqual(((DropperCache) pandaCrafter).eac_getIngredients(), craftingInventoryItems)
 			|| recipe != null && !recipe.matches(craftingInventory.createRecipeInput(), world)) {
 			RecipeEntry<CraftingRecipe> entry = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory.createRecipeInput(), world).orElse(null);
 
 			recipe = entry == null ? null : entry.value();
 
-			cache.eac_setRecipe(recipe);
-			cache.eac_setIngredients(craftingInventoryItems);
+			((DropperCache) pandaCrafter).eac_setRecipe(recipe);
+			((DropperCache) pandaCrafter).eac_setIngredients(craftingInventoryItems);
 		}
 
 		if (recipe != null) {
@@ -217,21 +212,4 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 		stackList.add(newStack.copy());
 	}
 
-	public boolean hasComparator() {
-		return true;
-	}
-
-	public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		if (blockEntity instanceof PandaCrafterBlockEntity pandaCrafterBlockEntity) {
-			int filledSlots = 0;
-			for (int i = 0; i < pandaCrafterBlockEntity.size(); ++i) {
-				if (!pandaCrafterBlockEntity.getStack(i).isEmpty()) {
-					filledSlots++;
-				}
-			}
-			return (filledSlots * 15) / pandaCrafterBlockEntity.size();
-		}
-		return 0;
-	}
 }

@@ -61,9 +61,8 @@ public class Config
 
             properties.store(outputStream, CONFIG_COMMENT);
         }
-        catch (IOException e)
+        catch (IOException ignored)
         {
-            e.printStackTrace();
         }
     }
 }

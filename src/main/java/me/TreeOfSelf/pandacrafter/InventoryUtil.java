@@ -44,7 +44,6 @@ public class InventoryUtil
         return true;
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     public static Storage<ItemVariant> getMerged3x3Storage(World world, BlockPos center, Direction extractionSide)
     {
         Direction.Axis first;
@@ -153,7 +152,6 @@ public class InventoryUtil
         }
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     public static boolean tryPutItems(Storage<ItemVariant> storage, List<ItemStack> stacks)
     {
         try (Transaction transaction = Transaction.openOuter())

@@ -41,11 +41,9 @@ public class PandaCrafter implements ModInitializer
 
 	private void registerPandaCrafter() {
 		Identifier blockId = Identifier.of(MOD_ID, "panda-crafter");
-		Identifier itemId = Identifier.of(MOD_ID, "panda-crafter");
 		Identifier blockEntityId = Identifier.of(MOD_ID, "panda-crafter-block-entity");
 
 		RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, blockId);
-		RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, itemId);
 
 		Block.Settings blockSettings = Block.Settings.create()
 			.registryKey(blockKey)
@@ -57,15 +55,6 @@ public class PandaCrafter implements ModInitializer
 			new PandaCrafterBlock(blockSettings)
 		);
 
-		Item.Settings itemSettings = new Item.Settings()
-			.useBlockPrefixedTranslationKey()
-			.registryKey(itemKey);
-
-		Item pandaCrafterItem = Registry.register(
-			Registries.ITEM,
-			itemId,
-			new PandaCrafterItem(pandaCrafterBlock, itemSettings)
-		);
 
 		PandaCrafterBlockEntityType.PANDA_CRAFTER_BLOCK_ENTITY = Registry.register(
 			Registries.BLOCK_ENTITY_TYPE,
