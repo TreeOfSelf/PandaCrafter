@@ -27,5 +27,5 @@ Originally inspired by https://modrinth.com/mod/eac
 [Support discord here!]( https://discord.gg/3tP3Tqu983)
 
 ## License
-
-[CC0](https://creativecommons.org/public-domain/cc0/)
+[EasyAutoCrafting](https://modrinth.com/mod/eac) Is licensed under MIT   
+[CC0](https://creativecommons.org/public-domain/cc0/) My changes are licensed under CC0
