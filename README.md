@@ -28,4 +28,4 @@ Originally inspired by https://modrinth.com/mod/eac
 
 ## License
 [EasyAutoCrafting](https://modrinth.com/mod/eac) Is licensed under [MIT](https://mit-license.org/)   
-[CC0](https://creativecommons.org/public-domain/cc0/) My changes are licensed under CC0
+My changes are licensed under [CC0](https://creativecommons.org/public-domain/cc0/)
