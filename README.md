@@ -1,4 +1,4 @@
-<img width="128" height="128" alt="icon" src="https://github.com/user-attachments/assets/cdcd39d5-efc0-49b1-beea-20af39c0472a" />
+<img width="128" height="128" alt="icon" src="https://github.com/user-attachments/assets/e2b6b043-9e12-4e40-8793-4d44dd2b3c20" />
 
 # Panda Crafter
 
