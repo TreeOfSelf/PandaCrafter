@@ -1,38 +1,39 @@
 package me.TreeOfSelf.pandacrafter;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.storage.ReadView;
-import net.minecraft.storage.WriteView;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
-public class PandaCrafterBlockEntity extends BlockEntity implements Inventory, DropperCache {
+public class PandaCrafterBlockEntity extends BlockEntity implements Container, DropperCache {
 	private static final int INVENTORY_SIZE = 9;
-	private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(INVENTORY_SIZE, ItemStack.EMPTY);
+	private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
 
-	private CraftingRecipe cachedRecipe;
-	private List<ItemStack> cachedIngredients;
+	private @Nullable CraftingRecipe cachedRecipe;
+	private @Nullable List<ItemStack> cachedIngredients;
 
 	public PandaCrafterBlockEntity(BlockPos pos, BlockState state) {
 		super(PandaCrafterBlockEntityType.PANDA_CRAFTER_BLOCK_ENTITY, pos, state);
 	}
 
 	@Override
-	public int size() {
+	public int getContainerSize() {
 		return INVENTORY_SIZE;
 	}
 
 	@Override
 	public boolean isEmpty() {
-		for (ItemStack itemStack : this.inventory) {
+		for (ItemStack itemStack : this.items) {
 			if (!itemStack.isEmpty()) {
 				return false;
 			}
@@ -41,71 +42,55 @@ public class PandaCrafterBlockEntity extends BlockEntity implements Inventory, D
 	}
 
 	@Override
-	public ItemStack getStack(int slot) {
-		return this.inventory.get(slot);
+	public ItemStack getItem(int slot) {
+		return this.items.get(slot);
 	}
 
 	@Override
-	public ItemStack removeStack(int slot, int amount) {
-		ItemStack itemStack = this.inventory.get(slot);
-		if (itemStack.isEmpty()) {
-			return ItemStack.EMPTY;
+	public ItemStack removeItem(int slot, int amount) {
+		ItemStack itemStack = ContainerHelper.removeItem(this.items, slot, amount);
+		if (!itemStack.isEmpty()) {
+			this.setChanged();
 		}
-		ItemStack removedStack = itemStack.split(amount);
-		if (itemStack.isEmpty()) {
-			this.inventory.set(slot, ItemStack.EMPTY);
-		}
-		this.markDirty();
-		return removedStack;
-	}
-
-	@Override
-	public ItemStack removeStack(int slot) {
-		ItemStack itemStack = this.inventory.get(slot);
-		if (itemStack.isEmpty()) {
-			return ItemStack.EMPTY;
-		}
-		this.inventory.set(slot, ItemStack.EMPTY);
-		this.markDirty();
 		return itemStack;
 	}
 
 	@Override
-	public void setStack(int slot, ItemStack stack) {
-		this.inventory.set(slot, stack);
-		this.markDirty();
+	public ItemStack removeItemNoUpdate(int slot) {
+		return ContainerHelper.takeItem(this.items, slot);
 	}
 
 	@Override
-	public void clear() {
-		for (int i = 0; i < INVENTORY_SIZE; i++) {
-			this.inventory.set(i, ItemStack.EMPTY);
-		}
-		this.markDirty();
+	public void setItem(int slot, ItemStack stack) {
+		this.items.set(slot, stack);
+		this.setChanged();
 	}
 
 	@Override
-	public void markDirty() {
-		if (this.world != null) {
-			this.world.markDirty(this.pos);
-		}
+	public void clearContent() {
+		this.items.clear();
+		this.setChanged();
 	}
 
 	@Override
-	public boolean canPlayerUse(net.minecraft.entity.player.PlayerEntity player) {
+	public boolean stillValid(Player player) {
 		return true;
 	}
 
 	@Override
-	protected void writeData(WriteView view) {
-		Inventories.writeData(view, this.inventory);
+	protected void saveAdditional(ValueOutput output) {
+		super.saveAdditional(output);
+		ContainerHelper.saveAllItems(output, this.items);
 	}
 
 	@Override
-	protected void readData(ReadView view) {
-		Inventories.readData(view, this.inventory);
+	protected void loadAdditional(ValueInput input) {
+		super.loadAdditional(input);
+		for (int i = 0; i < INVENTORY_SIZE; i++) {
+			this.items.set(i, ItemStack.EMPTY);
+		}
+		ContainerHelper.loadAllItems(input, this.items);
 	}
-
 
 	@Override
 	public CraftingRecipe eac_getRecipe() {

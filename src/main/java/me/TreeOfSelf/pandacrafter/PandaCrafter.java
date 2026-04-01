@@ -4,33 +4,30 @@ import eu.pb4.polymer.core.api.block.PolymerBlockUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
 import net.fabricmc.fabric.impl.event.lifecycle.LoadedChunksCache;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 
-public class PandaCrafter implements ModInitializer
-{
+public class PandaCrafter implements ModInitializer {
 	private static final String MOD_ID = "panda-crafter";
 
 	@Override
-	public void onInitialize()
-	{
+	public void onInitialize() {
 		Config.read();
 
 		registerPandaCrafter();
 
-		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success) ->
-		{
-			if (success)
-			{
-				//noinspection UnstableApiUsage
-				server.getWorlds().forEach(
-					w -> ((LoadedChunksCache)w).fabric_getLoadedChunks().forEach(
+		ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, serverResourceManager, success) -> {
+			if (success) {
+				server.getAllLevels().forEach(
+					w -> ((LoadedChunksCache) w).fabric_getLoadedChunks().forEach(
 						c -> c.getBlockEntities().values().stream()
 							.filter(DropperCache.class::isInstance)
 							.map(DropperCache.class::cast)
@@ -40,35 +37,35 @@ public class PandaCrafter implements ModInitializer
 	}
 
 	private void registerPandaCrafter() {
-		Identifier blockId = Identifier.of(MOD_ID, "panda-crafter");
-		Identifier itemId = Identifier.of(MOD_ID, "panda-crafter");
-		Identifier blockEntityId = Identifier.of(MOD_ID, "panda-crafter-block-entity");
+		Identifier blockId = Identifier.fromNamespaceAndPath(MOD_ID, "panda-crafter");
+		Identifier itemId = Identifier.fromNamespaceAndPath(MOD_ID, "panda-crafter");
+		Identifier blockEntityId = Identifier.fromNamespaceAndPath(MOD_ID, "panda-crafter-block-entity");
 
-		RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, blockId);
-		RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, itemId);
+		ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, blockId);
+		ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, itemId);
 
-		Block.Settings blockSettings = Block.Settings.create()
-			.registryKey(blockKey)
+		BlockBehaviour.Properties blockSettings = BlockBehaviour.Properties.of()
+			.setId(blockKey)
 			.strength(3.5f, 3.5f);
 
 		Block pandaCrafterBlock = Registry.register(
-			Registries.BLOCK,
+			BuiltInRegistries.BLOCK,
 			blockId,
 			new PandaCrafterBlock(blockSettings)
 		);
 
-		Item.Settings itemSettings = new Item.Settings()
-			.useItemPrefixedTranslationKey()
-			.registryKey(itemKey);
+		Item.Properties itemSettings = new Item.Properties()
+			.useItemDescriptionPrefix()
+			.setId(itemKey);
 
 		Registry.register(
-			Registries.ITEM,
+			BuiltInRegistries.ITEM,
 			itemId,
 			new PandaCrafterItem(pandaCrafterBlock, itemSettings)
 		);
 
 		PandaCrafterBlockEntityType.PANDA_CRAFTER_BLOCK_ENTITY = Registry.register(
-			Registries.BLOCK_ENTITY_TYPE,
+			BuiltInRegistries.BLOCK_ENTITY_TYPE,
 			blockEntityId,
 			FabricBlockEntityTypeBuilder.create(PandaCrafterBlockEntity::new, pandaCrafterBlock).build()
 		);

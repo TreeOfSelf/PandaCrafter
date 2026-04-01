@@ -1,171 +1,178 @@
 package me.TreeOfSelf.pandacrafter;
 
+import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import eu.pb4.sgui.api.gui.SimpleGui;
-import me.TreeOfSelf.pandacrafter.mixin.CraftingInventoryMixin;
-import net.minecraft.screen.slot.Slot;
+import me.TreeOfSelf.pandacrafter.mixin.TransientCraftingContainerMixin;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.minecraft.block.*;
-import net.minecraft.block.dispenser.ItemDispenserBehavior;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.HopperBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.CraftingInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.EnumProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
-import net.minecraft.world.block.WireOrientation;
-import net.minecraft.world.event.GameEvent;
-import org.jetbrains.annotations.Nullable;
-import xyz.nucleoid.packettweaker.PacketContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.dispenser.DefaultDispenseItemBehavior;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.Containers;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DispenserBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.redstone.Orientation;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntityProvider {
-	public static final EnumProperty<Direction> FACING = FacingBlock.FACING;
-	public static final BooleanProperty TRIGGERED = Properties.TRIGGERED;
+public class PandaCrafterBlock extends BaseEntityBlock implements PolymerBlock {
+	public static final MapCodec<PandaCrafterBlock> CODEC = simpleCodec(PandaCrafterBlock::new);
+	public static final EnumProperty<Direction> FACING = DispenserBlock.FACING;
+	public static final BooleanProperty TRIGGERED = BlockStateProperties.TRIGGERED;
 
-	public PandaCrafterBlock(Settings settings) {
+	public PandaCrafterBlock(BlockBehaviour.Properties settings) {
 		super(settings);
-		this.setDefaultState(this.stateManager.getDefaultState()
-				.with(FACING, Direction.NORTH)
-				.with(TRIGGERED, false));
+		this.registerDefaultState(this.stateDefinition.any()
+			.setValue(FACING, Direction.NORTH)
+			.setValue(TRIGGERED, false));
 	}
 
 	@Override
-	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+	protected MapCodec<? extends BaseEntityBlock> codec() {
+		return CODEC;
+	}
+
+	@Override
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(FACING, TRIGGERED);
 	}
 
 	@Override
-	public BlockState getPlacementState(ItemPlacementContext ctx) {
-		return this.getDefaultState().with(FACING, ctx.getPlayerLookDirection().getOpposite());
+	public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+		return this.defaultBlockState().setValue(FACING, ctx.getNearestLookingDirection().getOpposite());
 	}
 
-	@Nullable
 	@Override
-	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new PandaCrafterBlockEntity(pos, state);
 	}
 
 	@Override
 	public BlockState getPolymerBlockState(BlockState state, PacketContext context) {
-		return Blocks.DROPPER.getDefaultState().with(DispenserBlock.FACING, state.get(FACING));
+		return Blocks.DROPPER.defaultBlockState().setValue(DispenserBlock.FACING, state.getValue(FACING));
 	}
 
 	@Override
-	public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
-		if (world.isClient()) {
-			return ActionResult.SUCCESS;
+	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+		if (level.isClientSide()) {
+			return InteractionResult.SUCCESS;
 		}
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		if (blockEntity instanceof PandaCrafterBlockEntity pandaCrafterBlockEntity && player instanceof ServerPlayerEntity serverPlayer) {
-			SimpleGui gui = new SimpleGui(ScreenHandlerType.GENERIC_3X3, serverPlayer, false);
-			gui.setTitle(Text.literal("Easy Crafter"));
+		BlockEntity blockEntity = level.getBlockEntity(pos);
+		if (blockEntity instanceof PandaCrafterBlockEntity pandaCrafterBlockEntity && player instanceof ServerPlayer serverPlayer) {
+			SimpleGui gui = new SimpleGui(MenuType.GENERIC_3x3, serverPlayer, false);
+			gui.setTitle(Component.literal("Easy Crafter"));
 
 			for (int i = 0; i < 3; i++) {
 				for (int j = 0; j < 3; j++) {
 					int index = i * 3 + j;
-					gui.setSlotRedirect(index, new Slot(pandaCrafterBlockEntity, index, 62 + j * 18, 17 + i * 18));
+					gui.setSlot(index, new Slot(pandaCrafterBlockEntity, index, 62 + j * 18, 17 + i * 18));
 				}
 			}
 
 			gui.open();
 		}
-		return ActionResult.SUCCESS;
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override
-	public void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
-		BlockEntity blockEntity = world.getBlockEntity(pos);
-		if (blockEntity instanceof PandaCrafterBlockEntity pandaCrafterBlockEntity) {
-			for (int i = 0; i < pandaCrafterBlockEntity.size(); ++i) {
-				ItemStack itemStack = pandaCrafterBlockEntity.getStack(i);
-				if (!itemStack.isEmpty()) {
-					Block.dropStack(world, pos, itemStack);
-				}
-			}
-		}
-		super.onStateReplaced(state, world, pos, moved);
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+		Containers.updateNeighboursAfterDestroy(state, level, pos);
 	}
 
 	@Override
-	public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-		super.onBlockAdded(state, world, pos, oldState, notify);
-		world.emitGameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Emitter.of(state));
+	protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean notify) {
+		super.onPlace(state, level, pos, oldState, notify);
+		level.gameEvent(GameEvent.BLOCK_PLACE, pos, GameEvent.Context.of(state));
 	}
 
 	@Override
-	public void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
-		super.neighborUpdate(state, world, pos, sourceBlock, wireOrientation, notify);
-		if (world instanceof ServerWorld serverWorld) {
-			boolean isPowered = world.isReceivingRedstonePower(pos);
-			boolean wasTriggered = state.get(TRIGGERED);
+	protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block sourceBlock, @Nullable Orientation orientation, boolean notify) {
+		super.neighborChanged(state, level, pos, sourceBlock, orientation, notify);
+		if (level instanceof ServerLevel serverWorld) {
+			boolean isPowered = level.hasNeighborSignal(pos);
+			boolean wasTriggered = state.getValue(TRIGGERED);
 
 			if (isPowered && !wasTriggered) {
-				world.setBlockState(pos, state.with(TRIGGERED, true), Block.NOTIFY_LISTENERS);
+				level.setBlock(pos, state.setValue(TRIGGERED, true), Block.UPDATE_CLIENTS);
 				craftRecipe(serverWorld, state, pos);
 			} else if (!isPowered && wasTriggered) {
-				world.setBlockState(pos, state.with(TRIGGERED, false), Block.NOTIFY_LISTENERS);
+				level.setBlock(pos, state.setValue(TRIGGERED, false), Block.UPDATE_CLIENTS);
 			}
 		}
 	}
 
-	private void craftRecipe(ServerWorld world, BlockState state, BlockPos pos) {
+	private void craftRecipe(ServerLevel world, BlockState state, BlockPos pos) {
 		BlockEntity blockEntity = world.getBlockEntity(pos);
 		if (!(blockEntity instanceof PandaCrafterBlockEntity pandaCrafter)) {
 			return;
 		}
 
 		List<ItemStack> ingredients = new ArrayList<>(9);
-		CraftingInventory craftingInventory = new CraftingInventory(new StubScreenHandler(), 3, 3);
+		TransientCraftingContainer craftingContainer = new TransientCraftingContainer(new StubScreenHandler(), 3, 3);
 
 		for (int i = 0; i < 9; i++) {
 			@SuppressWarnings("ConstantConditions")
-			ItemStack stack = InventoryUtil.singleItemOf(pandaCrafter.getStack(i));
+			ItemStack stack = InventoryUtil.singleItemOf(pandaCrafter.getItem(i));
 			addToMergedItemStackList(ingredients, stack);
-			craftingInventory.setStack(i, stack);
+			craftingContainer.setItem(i, stack);
 		}
 
-		Direction facing = state.get(FACING);
+		Direction facing = state.getValue(FACING);
 		Storage<ItemVariant> ingredientStorage = Config.enable3x3InventorySearching ?
-				InventoryUtil.getMerged3x3Storage(world, pos.offset(facing.getOpposite()), facing) :
-				ItemStorage.SIDED.find(world, pos.offset(facing.getOpposite()), facing);
+			InventoryUtil.getMerged3x3Storage(world, pos.relative(facing.getOpposite()), facing) :
+			ItemStorage.SIDED.find(world, pos.relative(facing.getOpposite()), facing);
 
 		boolean patternMode = ingredientStorage != null;
 
-		if (craftingInventory.isEmpty() || !patternMode || !InventoryUtil.tryTakeItems(ingredientStorage, ingredients, true)) {
+		if (craftingContainer.isEmpty() || !patternMode || !InventoryUtil.tryTakeItems(ingredientStorage, ingredients, true)) {
 			return;
 		}
 
 		CraftingRecipe recipe = ((DropperCache) pandaCrafter).eac_getRecipe();
 
-		List<ItemStack> craftingInventoryItems = ((CraftingInventoryMixin) craftingInventory).getStacks();
+		List<ItemStack> craftingInventoryItems = ((TransientCraftingContainerMixin) (Object) craftingContainer).getItemsInternal();
+
+		CraftingInput craftInput = craftingContainer.asCraftInput();
 
 		if (!InventoryUtil.itemStackListsEqual(((DropperCache) pandaCrafter).eac_getIngredients(), craftingInventoryItems)
-				|| recipe != null && !recipe.matches(craftingInventory.createRecipeInput(), world)) {
-			RecipeEntry<CraftingRecipe> entry = world.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, craftingInventory.createRecipeInput(), world).orElse(null);
+			|| recipe != null && !recipe.matches(craftInput, world)) {
+			RecipeHolder<CraftingRecipe> holder = world.recipeAccess().getRecipeFor(RecipeType.CRAFTING, craftInput, world).orElse(null);
 
-			recipe = entry == null ? null : entry.value();
+			recipe = holder == null ? null : holder.value();
 
 			((DropperCache) pandaCrafter).eac_setRecipe(recipe);
 			((DropperCache) pandaCrafter).eac_setIngredients(craftingInventoryItems);
@@ -174,14 +181,14 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 		if (recipe != null) {
 			List<ItemStack> craftingResults = new ArrayList<>();
 
-			addToMergedItemStackList(craftingResults, recipe.craft(craftingInventory.createRecipeInput(), world.getRegistryManager()));
+			addToMergedItemStackList(craftingResults, recipe.assemble(craftInput));
 
-			for (ItemStack remainingStack : recipe.getRecipeRemainders(craftingInventory.createRecipeInput())) {
+			for (ItemStack remainingStack : recipe.getRemainingItems(craftInput)) {
 				addToMergedItemStackList(craftingResults, remainingStack);
 			}
 
-			Inventory inventoryInFront = HopperBlockEntity.getInventoryAt(world, pos.offset(facing));
-			Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, pos.offset(facing), facing.getOpposite());
+			Container inventoryInFront = HopperBlockEntity.getContainerAt(world, pos.relative(facing));
+			Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, pos.relative(facing), facing.getOpposite());
 			boolean hasCrafted = false;
 
 			if (inventoryInFront != null) {
@@ -194,12 +201,13 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 					hasCrafted = true;
 				}
 			} else {
+				Vec3 spawnPos = pos.getCenter().add(0.7 * facing.getStepX(), 0.7 * facing.getStepY(), 0.7 * facing.getStepZ());
 				for (ItemStack craftingResult : craftingResults) {
-					ItemDispenserBehavior.spawnItem(world, craftingResult, 6, facing, pos.toCenterPos().add(0.7 * facing.getOffsetX(), 0.7 * facing.getOffsetY(), 0.7 * facing.getOffsetZ()));
+					DefaultDispenseItemBehavior.spawnItem(world, craftingResult, 6, facing, spawnPos);
 				}
 
-				world.syncWorldEvent(1000, pos, 0);
-				world.syncWorldEvent(2000, pos, facing.getIndex());
+				world.levelEvent(1000, pos, 0);
+				world.levelEvent(2000, pos, facing.get3DDataValue());
 
 				hasCrafted = true;
 			}
@@ -217,7 +225,7 @@ public class PandaCrafterBlock extends Block implements PolymerBlock, BlockEntit
 
 		for (ItemStack stack : stackList) {
 			if (InventoryUtil.itemsEqual(stack, newStack)) {
-				stack.setCount(stack.getCount() + newStack.getCount());
+				stack.grow(newStack.getCount());
 				return;
 			}
 		}

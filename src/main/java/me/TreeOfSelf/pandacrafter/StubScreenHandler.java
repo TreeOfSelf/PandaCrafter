@@ -1,25 +1,21 @@
 package me.TreeOfSelf.pandacrafter;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 
-public class StubScreenHandler extends ScreenHandler
-{
-    protected StubScreenHandler()
-    {
-        super(null, 0);
-    }
+public class StubScreenHandler extends AbstractContainerMenu {
+	protected StubScreenHandler() {
+		super(null, 0);
+	}
 
-    @Override
-    public ItemStack quickMove(PlayerEntity player, int index)
-    {
-        return null;
-    }
+	@Override
+	public ItemStack quickMoveStack(Player player, int index) {
+		return ItemStack.EMPTY;
+	}
 
-    @Override
-    public boolean canUse(PlayerEntity player)
-    {
-        return false;
-    }
+	@Override
+	public boolean stillValid(Player player) {
+		return false;
+	}
 }
