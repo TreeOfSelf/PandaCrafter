@@ -201,7 +201,7 @@ public class PandaCrafterBlock extends BaseEntityBlock implements PolymerBlock {
 					hasCrafted = true;
 				}
 			} else {
-				Vec3 spawnPos = pos.getCenter().add(0.7 * facing.getStepX(), 0.7 * facing.getStepY(), 0.7 * facing.getStepZ());
+				Vec3 spawnPos = Vec3.atCenterOf(pos).add(0.7 * facing.getStepX(), 0.7 * facing.getStepY(), 0.7 * facing.getStepZ());
 				for (ItemStack craftingResult : craftingResults) {
 					DefaultDispenseItemBehavior.spawnItem(world, craftingResult, 6, facing, spawnPos);
 				}
