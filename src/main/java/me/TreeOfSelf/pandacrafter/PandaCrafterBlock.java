@@ -1,6 +1,5 @@
 package me.TreeOfSelf.pandacrafter;
 
-import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.TreeOfSelf.pandacrafter.mixin.TransientCraftingContainerMixin;
@@ -50,7 +49,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PandaCrafterBlock extends BaseEntityBlock implements PolymerBlock {
-	public static final MapCodec<PandaCrafterBlock> CODEC = simpleCodec(PandaCrafterBlock::new);
 	public static final EnumProperty<Direction> FACING = DispenserBlock.FACING;
 	public static final BooleanProperty TRIGGERED = BlockStateProperties.TRIGGERED;
 
@@ -59,11 +57,6 @@ public class PandaCrafterBlock extends BaseEntityBlock implements PolymerBlock {
 		this.registerDefaultState(this.stateDefinition.any()
 			.setValue(FACING, Direction.NORTH)
 			.setValue(TRIGGERED, false));
-	}
-
-	@Override
-	protected MapCodec<? extends BaseEntityBlock> codec() {
-		return CODEC;
 	}
 
 	@Override
